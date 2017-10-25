@@ -21,13 +21,16 @@ def has_bandcamp(band_name):
     global saved_link
     print "Checking official links of:"+band_name
     new_url = 'https://www.metal-archives.com/bands/'+band_name
+    #instead of adding band name to metal archives, just grab the link to the new band instead
+    #new_url = band_name
+    ##USE ABOVE URL##
     driver.get(new_url)
     html = driver.page_source
     soup = BeautifulSoup(html,"html.parser")
     #print "before if"
     if soup.find('div',{'class': 'content_wrapper'}):
         #print "in if"
-        soup.find_element_by_partial_link_text("Enslaved").click()
+        soup.find_element_by_partial_link_text(band_name).click()
         html = driver.page_source
         soup = BeautifulSoup(html,"html.parser")
     #print "after if"
@@ -82,64 +85,14 @@ def has_bandcamp(band_name):
             #if theres no link in either: official, merch, or unofficial links
             #return nothing
             if(soup.find('a', text = pattern)==None):
-                print "No dice"
+                print "No bandcamp found for: "+band_name
                 return False
-
-        # elif soup.find('a', text = pattern):
-        #     print "Bandcamp found in official merch of:"+band_name
-        #     #found the link now do the hyperlink
-        #     for link in soup.find_all('a',href=True,text=pattern):
-        #         saved_link = link.get("href")
-        #         print saved_link
-        #         return True
-    # elif soup.find('a', text = pattern):
-    #     print "Bandcamp found in official links of:"+band_name
-    #     #found the link now do the hyperlink
-    #     for link in soup.find_all('a',href=True,text=pattern):
-    #         saved_link = link.get("href")
-    #         print saved_link
-    #         return True
-
-    # driver.find_element_by_id("ui-id-4").click()#opens up similar artist tab
-    # time.sleep(3)
-    # #reload the soup page to find new things
-    # html = driver.page_source
-    # soup = BeautifulSoup(html,"html.parser")
-    # artist_list = soup.find_all('table', {'id': 'artist_list'})
-    # artist_string = str(artist_list)
-    # artists = artist_string.split("<a")
-
-    #Attempt one, find all the bandcamps by hand
-    #didn't exactly work so I am refining
-    #comment all above for original attempt to work
-    #bc for bandcamp to keep things clean
-
-    #uncomment all below to show working
-    # bcurl = 'https://'+band_name+'.bandcamp.com'
-    # source = requests.get(bcurl)
-    # text = source.text
-    # bcsoup = BeautifulSoup(text, "html.parser")
-    # if bcsoup.find_all('h2',{'class':'signuptitle'}):
-    #     driver.get(bcurl)
-    #     print "No it doesn't"
-    #     print bcurl
-    #     return False
-    # else:
-    #     #print "Yes it does"
-    #     return True
 
 def hype_link(event):
     band_name_l = saved_link
     print band_name_l
     webbrowser.open_new(band_name_l)
 
-    #original attempt
-    #uncomment all below to have it work
-    # band_name_l = band_name_link
-    # #band_name_l = urllib2.quote(band_name_link)
-    # print band_name_l
-    # webbrowser.open_new(r"https://"+band_name_l+".bandcamp.com")
-    # print "https://"+band_name_l+".bandcamp.com"
 
 def input_spider(max_pages, band_name):
     global original_url
@@ -191,16 +144,36 @@ def input_spider(max_pages, band_name):
             if("href" in art):
                 n = art.split(">")
                 for x in n:
-                    #print x
+                    #grab the band link itself
+                    #need to inject this block into other code
+                    if("href" in x):
+                        #Both xStr and xElement are variables for a band name
+                        #I did not want to keep naming things similarly
+                        #For the sake of keeping things cleaner
+                        xStr = str(x)
+                        print xStr
+                        #grabs band's name
+                        split_link_1 = xStr.split('/')
+                        split_band = split_link_1[4]
+                        print split_band
+                        #grabs band's url to be searched later on
+                        split_link_2 = xStr.split("\"")
+                        split_url = split_link_2[1]
+                        print split_url
+                        #need to put split url into code so that the crawler
+                        #searched based upon this url rather than just the band name
                     if("</a" in x):
                         #Both xStr and xElement are variables for a band name
                         #I did not want to keep naming things similarly
                         #For the sake of keeping things not confusing
                         xStr = str(x)
+                        #print xStr
+
                         xElement = xStr.split("</a")
+                        #print xElement
                         #print xElement[0]
                         if("see more" in xElement[0]):
-                            break;
+                            break
                         elif("see more" not in xElement[0]):
                             bandz.append(xElement[0])
 
@@ -211,13 +184,7 @@ def input_spider(max_pages, band_name):
             b = b.replace('&','%26')
             #b = b.replace('%%2520',' ')
             band_name_link = b
-            #new code: comment until it works
-            # if has_bandcamp == False:
-            #     bandLabel = Label(app,text=b)
-            #     bandLabel.pack()
-            #     #print bandLabel
-            #     #bandLabel.pack(side=LEFT)
-            #     labels.append(bandLabel)
+            print "BAND_NAME_LINK IS %s" % band_name_link
 
             #original attempt uncomment to show off
             if has_bandcamp(b) == True:
@@ -234,72 +201,12 @@ def input_spider(max_pages, band_name):
                 #bandLabel.pack(side=LEFT)
                 labels.append(bandLabel)
         print labels
-        #weird attempt
-        # for band in labels:
-        #     print band
-        #     bandLabel = Label(app,text=band).pack()
-
-
-                #print n
-        # for art in artists:
-        #     name = art.find('a').contents[0]
-        #     print name
-        #broken attempt
-        # tabs = soup.findAll('table', {'class': 'display'})
-        # similar_bands = soup.find(string=re.compile('id=artist_list'))
-        # #rows = similar_bands.find_all('tr')
-        # print similar_bands
-        page+=1
-    return bandz
-
-def spider(max_pages):#, band_url):
-    bandz = [] #variable for the band array
-    page = 1
-    print "ah"
-    while(page <= max_pages):
-        #attempt 1
-        source = requests.get(url) #get source code
-        text = source.text #page in text form
-        soup = BeautifulSoup(text, "html.parser") #make soup object to iterate through data
-
-        #print soup
-        #grab band name section
-        bandName = soup.find_all('h1',{'class': 'band_name'})
-        #print bandName
-        for link in bandName:
-            #gets the band name, need to use this to print to top of Tkinter
-            name = link.find('a').contents[0]
-            print name
-        driver.find_element_by_id("ui-id-4").click()#opens up similar artist tab
-        time.sleep(3)
-        #reload the soup page to find new things
-        html = driver.page_source
-        soup = BeautifulSoup(html,"html.parser")
-        artist_list = soup.find_all('table', {'id': 'artist_list'})
-        artist_string = str(artist_list)
-        artists = artist_string.split("<a")
-
-        #print artists
-        for art in artists:
-            if("href" in art):
-                n = art.split(">")
-                for x in n:
-                    #print x
-                    if("</a" in x):
-                        #Both xStr and xElement are variables for a band name
-                        #I did not want to keep naming things similarly
-                        #For the sake of keeping things not confusing
-                        xStr = str(x)
-                        xElement = xStr.split("</a")
-                        #print xElement[0]
-                        bandz.append(xElement[0])
-        print bandz
-
         page+=1
     return bandz
 
 def find_bands():
     #clear out all previous labels
+    #use for multiple searches
     global labels
     for label in labels:
         label.destroy()
@@ -309,6 +216,8 @@ def find_bands():
     global ban
     band = ban.get()
     input_spider(1,band)
+
+#global stuff down here
 labels = []
 band_link_list = []
 app = Tk()
